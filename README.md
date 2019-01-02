@@ -4,3 +4,6 @@ A file browser in a style of a series made by JackDC93 - it's useless apart from
 ##Running  
 Make sure you have Python 3.x installed and run meridian.py  
 There is also an exe available in the Releases  
+  
+##1.1 update  
+You can now open up the mysterious LL.mp4
