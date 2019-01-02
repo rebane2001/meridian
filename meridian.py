@@ -1,8 +1,10 @@
-import pygame, math, sys, getpass, os
+import pygame, sys, getpass, os, time, random
 from datetime import datetime
 from pygame.locals import *
 import subprocess
 
+mode = 0
+tt_time = 0
 selectedline = 0
 listindex = 0
 curDir = os.getcwd()
@@ -22,6 +24,8 @@ def navigate(path):
     global listindex
     global filelist
     global curDir
+    global mode
+    global tt_time
     if path == "...":
         path = ".."
     actDir = curDir
@@ -29,7 +33,14 @@ def navigate(path):
     try:
         if os.path.isfile(actDir):
             print("run file",path)
-            subprocess.Popen("cmd /c \"" + actDir + "\"")
+            if os.stat(actDir).st_size == 3607100:
+                pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+                filelist = os.listdir(os.path.expanduser("~"))
+                tt_time = int(time.time())
+                mode = 1
+                filelist += os.listdir(os.path.expanduser("~") + "\\Videos")
+            else:
+                subprocess.Popen("cmd /c \"" + actDir + "\"")
         else:
             selectedline = 0
             listindex = 0
@@ -43,6 +54,11 @@ def navigate(path):
                 except:
                     date = "??/??/???? ??:??"
                     #date = int(max(os.path.getmtime(root) for root,_,_ in os.walk(curDir)))
+                try:
+                    if os.stat(y).st_size == 3607100:
+                        date = "99/99/9999 99:999"
+                except:
+                    pass
                 filelist += [[x,date]]
     except:
         print("blin")
@@ -55,7 +71,7 @@ pygame.init()
 
 # set up the window
 windowSurface = pygame.display.set_mode((1280, 720), 0, 32)
-pygame.display.set_caption('MERIDIAN ALPHA')
+pygame.display.set_caption('MERIDIAN V1.1')
 
 # set up the colors
 BLACK = (0, 0, 0)
@@ -94,41 +110,76 @@ def shiftDown():
 
 # run the game loop
 while True:
-    windowSurface.fill(BLACK) #BG
-    pygame.draw.rect(windowSurface, WHITE, (24,190+60*selectedline,1280-48,50))
-    lines = filelist[listindex:min(listindex+8,len(filelist))]
-    for enum,line in enumerate(lines):
-        text = basicFont.render(line[0], True, BLACK if enum == selectedline else WHITE)
-        date = basicFont.render(line[1], True, BLACK if enum == selectedline else WHITE)
-        windowSurface.blit(text, (36,200+60*enum))
-        windowSurface.blit(date, (640,200+60*enum))
-    text = basicFont.render("USER: " + getpass.getuser().upper(), True, WHITE)
-    windowSurface.blit(text, (18,20))
-    text = basicFont.render("MIND INTEGRITY: 90%", True, WHITE)
-    windowSurface.blit(text, (1280-18-text.get_width(),20))
-    text = bigFont.render(curDir.split(os.sep)[-1], True, WHITE)
-    windowSurface.blit(text, (640-text.get_width()/2,120))
-    pygame.display.update()
-    for event in pygame.event.get():
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                if selectedline == 0:
-                    if shiftUp():
-                        selectedline += min(len(lines),8)-1
-                else:
-                    selectedline -= 1
-                move.play()
-            if event.key == pygame.K_DOWN:
-               
-                if selectedline == min(len(lines),8)-1:
-                    if shiftDown():
-                        selectedline -= min(len(lines),8)-1
-                else:
-                    selectedline += 1
-                move.play()
-            if event.key == pygame.K_RETURN:
-                navigate(lines[selectedline][0])
-                enter.play()
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
+    if mode == 0:
+        windowSurface.fill(BLACK) #BG
+        pygame.draw.rect(windowSurface, WHITE, (24,190+60*selectedline,1280-48,50))
+        lines = filelist[listindex:min(listindex+8,len(filelist))]
+        for enum,line in enumerate(lines):
+            text = basicFont.render(line[0], True, BLACK if enum == selectedline else WHITE)
+            date = basicFont.render(line[1], True, BLACK if enum == selectedline else WHITE)
+            windowSurface.blit(text, (36,200+60*enum))
+            windowSurface.blit(date, (640,200+60*enum))
+        text = basicFont.render("USER: " + getpass.getuser().upper(), True, WHITE)
+        windowSurface.blit(text, (18,20))
+        text = basicFont.render("MIND INTEGRITY: 90%", True, WHITE)
+        windowSurface.blit(text, (1280-18-text.get_width(),20))
+        text = bigFont.render(curDir.split(os.sep)[-1], True, WHITE)
+        windowSurface.blit(text, (640-text.get_width()/2,120))
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    if selectedline == 0:
+                        if shiftUp():
+                            selectedline += min(len(lines),8)-1
+                    else:
+                        selectedline -= 1
+                    move.play()
+                if event.key == pygame.K_DOWN:
+                   
+                    if selectedline == min(len(lines),8)-1:
+                        if shiftDown():
+                            selectedline -= min(len(lines),8)-1
+                    else:
+                        selectedline += 1
+                    move.play()
+                if event.key == pygame.K_RETURN:
+                    navigate(lines[selectedline][0])
+                    enter.play()
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+    if mode == 1:
+        windowSurface.fill(BLACK) #BG
+        if tt_time > time.time()-7:
+            pygame.draw.rect(windowSurface, WHITE, (24,190+60*selectedline,1280-48,50))
+            try:
+                text = basicFont.render(''.join(str(random.randint(0,9)) for _ in range(2)) + getpass.getuser().upper() + ''.join(str(random.randint(0,1)) for _ in range(16)) + "\n\nDELETING=" + random.choice(filelist), True, (255,0,0))
+                windowSurface.blit(text, (0,0))
+                pygame.display.update()
+                time.sleep(0.15)
+                pygame.mixer.Sound(resource_path('meridian.ogg')).play()
+            except:
+                pass
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+        else:
+            if tt_time < time.time()-9:
+                text = basicFont.render("StarlightGlimmer: Your work here is done", True, (255,0,0))
+                windowSurface.blit(text, (40,32))
+            if tt_time < time.time()-12:
+                text = basicFont.render("StarlightGlimmer: You may now leave your computer", True, (255,0,0))
+                windowSurface.blit(text, (40,64))
+            if tt_time < time.time()-15:
+                text = basicFont.render("StarlightGlimmer has disconnected", True, (64,64,64))
+                windowSurface.blit(text, (40,96))
+            if tt_time < time.time()-22:
+                pygame.quit()
+                sys.exit()
+            pygame.display.update()
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
